@@ -73,77 +73,81 @@ public class Handler implements RequestStreamHandler {
 		GPUdbBase.Options result = new GPUdbBase.Options();
 		Map<String, String> kinetica_options = null;
 		kinetica_options = gson.fromJson(options, Map.class);
-		
-		for (Entry<?, ?> entry : kinetica_options.entrySet()) {
-			String key = entry.getKey().toString().toUpperCase();
-			String value = entry.getValue().toString();
-			switch (key) {
-			case "BYPASSSSLCERTCHECK":
-				result.setBypassSslCertCheck(Boolean.valueOf(value));
-				break;
-			case "CLUSTERRECONNECTCOUNT":
-				result.setClusterReconnectCount(Integer.valueOf(value));
-				break;
-			case "CONNECTIONINACTIVITYVALIDATIONTIMEOUT":
-				result.setConnectionInactivityValidationTimeout(Integer.valueOf(value));
-				break;
-			case "DISABLEAUTODISCOVERY":
-				result.setDisableAutoDiscovery(Boolean.valueOf(value));
-				break;
-			case "DISABLEFAILOVER":
-				result.setDisableFailover(Boolean.valueOf(value));
-				break;
-			case "HAFAILOVERORDER":
-				switch (value.toUpperCase()) {
-				case "RANDOM":
-					result.setHAFailoverOrder(GPUdbBase.HAFailoverOrder.RANDOM);
+		if ( kinetica_options != null) {
+			for (Entry<?, ?> entry : kinetica_options.entrySet()) {
+				String key = entry.getKey().toString().toUpperCase();
+				String value = entry.getValue().toString();
+				switch (key) {
+				case "BYPASSSSLCERTCHECK":
+					result.setBypassSslCertCheck(Boolean.valueOf(value));
 					break;
-				case "SEQUENTIAL":
-					result.setHAFailoverOrder(GPUdbBase.HAFailoverOrder.SEQUENTIAL);
+				case "CLUSTERRECONNECTCOUNT":
+					result.setClusterReconnectCount(Integer.valueOf(value));
+					break;
+				case "CONNECTIONINACTIVITYVALIDATIONTIMEOUT":
+					result.setConnectionInactivityValidationTimeout(Integer.valueOf(value));
+					break;
+				case "DISABLEAUTODISCOVERY":
+					result.setDisableAutoDiscovery(Boolean.valueOf(value));
+					break;
+				case "DISABLEFAILOVER":
+					result.setDisableFailover(Boolean.valueOf(value));
+					break;
+				case "HAFAILOVERORDER":
+					switch (value.toUpperCase()) {
+					case "RANDOM":
+						result.setHAFailoverOrder(GPUdbBase.HAFailoverOrder.RANDOM);
+						break;
+					case "SEQUENTIAL":
+						result.setHAFailoverOrder(GPUdbBase.HAFailoverOrder.SEQUENTIAL);
+						break;
+					}
+				case "HOSTMANAGERPORT":
+					result.setHostManagerPort(Integer.valueOf(value));
+					break;
+				case "HOSTNAMEREGEX":
+					result.setHostnameRegex(value);
+					break;
+				case "HTTPHEADERS":
+					result.setHttpHeaders(gson.fromJson(value, Map.class));
+					break;
+				case "INITIALCONNECTIONATTEMPTTIMEOUT":
+					result.setInitialConnectionAttemptTimeout(Long.valueOf(value));
+					break;
+				case "INTRACLUSTERFAILOVERTIMEOUT":
+					result.setIntraClusterFailoverTimeout(Long.valueOf(value));
+					break;
+				case "LOGGINGLEVEL":
+					result.setLoggingLevel(value);
+					break;
+				case "MAXCONNECTIONSPERHOST":
+					result.setMaxConnectionsPerHost(Integer.valueOf(value));
+					break;
+				case "MAXTOTALCONNECTIONS":
+					result.setMaxTotalConnections(Integer.valueOf(value));
+					break;
+				case "PASSWORD":
+					result.setPassword(value);
+					break;
+				case "PRIMARYURL":
+					result.setPrimaryUrl(value);
+					break;
+				case "SERVERCONNECTIONTIMEOUT":
+					result.setServerConnectionTimeout(Integer.valueOf(value));
+					break;
+				case "THREADCOUNT":
+					result.setThreadCount(Integer.valueOf(value));
+					break;
+				case "TIMEOUT":
+					result.setTimeout(Integer.valueOf(value));
+					break;
+				case "USERNAME":
+					result.setUsername(value);
+					break;
+				case "USESNAPPY":
+					result.setUseSnappy(Boolean.valueOf(value));
 					break;
 				}
-			case "HOSTMANAGERPORT":
-				result.setHostManagerPort(Integer.valueOf(value));
-				break;
-			case "HOSTNAMEREGEX":
-				result.setHostnameRegex(value);
-				break;
-			case "HTTPHEADERS":
-				result.setHttpHeaders(gson.fromJson(value, Map.class));
-				break;
-			case "INITIALCONNECTIONATTEMPTTIMEOUT":
-				result.setInitialConnectionAttemptTimeout(Long.valueOf(value));
-				break;
-			case "INTRACLUSTERFAILOVERTIMEOUT":
-				result.setIntraClusterFailoverTimeout(Long.valueOf(value));
-				break;
-			case "LOGGINGLEVEL":
-				result.setLoggingLevel(value);
-				break;
-			case "MAXCONNECTIONSPERHOST":
-				result.setMaxConnectionsPerHost(Integer.valueOf(value));
-				break;
-			case "MAXTOTALCONNECTIONS":
-				result.setMaxTotalConnections(Integer.valueOf(value));
-				break;
-			case "PASSWORD":
-				result.setPassword(value);
-				break;
-			case "PRIMARYURL":
-				result.setPrimaryUrl(value);
-				break;
-			case "THREADCOUNT":
-				result.setThreadCount(Integer.valueOf(value));
-				break;
-			case "TIMEOUT":
-				result.setTimeout(Integer.valueOf(value));
-				break;
-			case "USERNAME":
-				result.setUsername(value);
-				break;
-			case "USESNAPPY":
-				result.setUseSnappy(Boolean.valueOf(value));
-				break;
 			}
 		}
 		return result;
