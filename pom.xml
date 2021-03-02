@@ -10,7 +10,7 @@
   <url>https://www.kinetica.com/</url>
 
   <properties>
-    <gpudb.api.version>7.0.16.0</gpudb.api.version>
+    <gpudb.api.version>[7.1.0.0,7.3.0.0)</gpudb.api.version>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
