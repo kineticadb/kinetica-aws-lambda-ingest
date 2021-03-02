@@ -26,10 +26,12 @@ import com.gpudb.protocol.InsertRecordsFromPayloadRequest;
 import com.gpudb.protocol.InsertRecordsFromPayloadResponse;
 
 public class Handler implements RequestStreamHandler {
-	Gson gson = new GsonBuilder().setPrettyPrinting().create();
+	private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+	private LambdaLogger logger;
 
+	
 	public void handleRequest(InputStream inputStream, OutputStream outputStream, Context context) throws IOException {
-		LambdaLogger logger = context.getLogger();
+		this.logger = context.getLogger();
 		Map<String, String> env = System.getenv();
 		String request_table_name = env.get("request_table_name");
 		Map<String, String> request_create_table_options = null;
@@ -49,9 +51,9 @@ public class Handler implements RequestStreamHandler {
 			InsertRecordsFromPayloadRequest request = new InsertRecordsFromPayloadRequest(request_table_name, data_text,
 					null, null, request_create_table_options, request_options);
 			InsertRecordsFromPayloadResponse response = gpudb.insertRecordsFromPayload(request);
-			logger.log("Number of rows inserted: " + response.getCountInserted());
-			logger.log("Number of rows updated: " + response.getCountUpdated());
-			logger.log("Number of rows skipped: " + response.getCountSkipped());
+			this.logger.log("Number of rows inserted: " + response.getCountInserted() + "\n");
+			this.logger.log("Number of rows updated: " + response.getCountUpdated() + "\n");
+			this.logger.log("Number of rows skipped: " + response.getCountSkipped() + "\n");
 
 		} catch (GPUdbException e) {
 			throw new IOException(e);
