@@ -29,19 +29,8 @@ import com.gpudb.protocol.InsertRecordsFromPayloadResponse;
 public class Handler implements RequestStreamHandler {
 	Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-	public static void main(String[] args) throws Exception {
-		Handler me = new Handler();
-		String initialString = "[\r\n" + "  {\r\n" + "    \"key1\": \"value1\",\r\n" + "    \"key2\": \"value2\",\r\n"
-				+ "    \"key3\": \"value3\"\r\n" + "  },\r\n" + "  {\r\n" + "    \"key1\": \"value1\",\r\n"
-				+ "    \"key2\": \"value2\",\r\n" + "    \"key3\": \"va\\\\lue3\"\r\n" + "  },\r\n" + "  {\r\n"
-				+ "    \"key1\": \"value1\",\r\n" + "    \"key2\": \"value2\",\r\n" + "    \"key3\": \"value3\"\r\n"
-				+ "  }\r\n" + "]";
-		InputStream inputStream = new ByteArrayInputStream(initialString.getBytes());
-		me.handleRequest(inputStream, null, null);
-	}
-
 	public void handleRequest(InputStream inputStream, OutputStream outputStream, Context context) throws IOException {
-		//System.out.println("ENVIRONMENT VARIABLES: " + gson.toJson(System.getenv()));
+		LambdaLogger logger = context.getLogger();
 		Map<String, String> env = System.getenv();
 		String request_table_name = env.get("request_table_name");
 		Map<String, String> request_create_table_options = null;
@@ -60,20 +49,22 @@ public class Handler implements RequestStreamHandler {
 			GPUdb gpudb = new GPUdb(kinetica_url, opts);
 			InsertRecordsFromPayloadRequest request = new InsertRecordsFromPayloadRequest(request_table_name, data_text,
 					null, null, request_create_table_options, request_options);
-			gpudb.insertRecordsFromPayload(request);
+			InsertRecordsFromPayloadResponse response = gpudb.insertRecordsFromPayload(request);
+			logger.log("Number of rows inserted: " + response.getCountInserted());
+			logger.log("Number of rows updated: " + response.getCountUpdated());
+			logger.log("Number of rows skipped: " + response.getCountSkipped());
+
 		} catch (GPUdbException e) {
 			throw new IOException(e);
 		}
-		
+
 	}
-
-
 
 	private Options getOpts(String options) throws GPUdbException {
 		GPUdbBase.Options result = new GPUdbBase.Options();
 		Map<String, String> kinetica_options = null;
 		kinetica_options = gson.fromJson(options, Map.class);
-		if ( kinetica_options != null) {
+		if (kinetica_options != null) {
 			for (Entry<?, ?> entry : kinetica_options.entrySet()) {
 				String key = entry.getKey().toString().toUpperCase();
 				String value = entry.getValue().toString();
@@ -197,4 +188,17 @@ public class Handler implements RequestStreamHandler {
 		}
 		return result;
 	}
+
+	/* This was used for testing locally:
+	 * public static void main(String[] args) throws Exception { Handler me = new
+	 * Handler(); String initialString = "[\r\n" + "  {\r\n" +
+	 * "    \"key1\": \"value1\",\r\n" + "    \"key2\": \"value2\",\r\n" +
+	 * "    \"key3\": \"value3\"\r\n" + "  },\r\n" + "  {\r\n" +
+	 * "    \"key1\": \"value1\",\r\n" + "    \"key2\": \"value2\",\r\n" +
+	 * "    \"key3\": \"va\\\\lue3\"\r\n" + "  },\r\n" + "  {\r\n" +
+	 * "    \"key1\": \"value1\",\r\n" + "    \"key2\": \"value2\",\r\n" +
+	 * "    \"key3\": \"value3\"\r\n" + "  }\r\n" + "]"; InputStream inputStream =
+	 * new ByteArrayInputStream(initialString.getBytes());
+	 * me.handleRequest(inputStream, null, null); }
+	 */
 }
