@@ -9,6 +9,7 @@ import java.io.OutputStream;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
@@ -45,7 +46,7 @@ public class Handler implements RequestStreamHandler {
 			Handler.request_options = gson.fromJson(env.get("request_options"), Map.class);
 		}
 		String kinetica_url = env.get("kinetica_url");
-		
+
 		GPUdbBase.Options opts;
 		try {
 			opts = this.getOpts(env.get("kinetica_options"));
@@ -53,26 +54,24 @@ public class Handler implements RequestStreamHandler {
 		} catch (GPUdbException e) {
 			throw new IOException(e);
 		}
-		
+
 	}
 
 	public void handleRequest(InputStream inputStream, OutputStream outputStream, Context context) throws IOException {
 		if (context != null) {
 			Handler.logger = context.getLogger();
 		}
-		
+
 		String data_text = this.getPayload(inputStream);
-		
+		this.log(data_text);
 		try {
-			
-			InsertRecordsFromPayloadRequest request = new InsertRecordsFromPayloadRequest(Handler.request_table_name, data_text,
-					null, null, Handler.request_create_table_options, Handler.request_options);
+
+			InsertRecordsFromPayloadRequest request = new InsertRecordsFromPayloadRequest(Handler.request_table_name,
+					data_text, null, null, Handler.request_create_table_options, Handler.request_options);
 			InsertRecordsFromPayloadResponse response = Handler.gpudb.insertRecordsFromPayload(request);
-			if (Handler.logger != null) {
-				Handler.logger.log("Number of rows inserted: " + response.getCountInserted() + "\n");
-				Handler.logger.log("Number of rows updated: " + response.getCountUpdated() + "\n");
-				Handler.logger.log("Number of rows skipped: " + response.getCountSkipped() + "\n");
-			}
+			this.log("Number of rows inserted: " + response.getCountInserted());
+			this.log("Number of rows updated: " + response.getCountUpdated());
+			this.log("Number of rows skipped: " + response.getCountSkipped());
 
 		} catch (GPUdbException e) {
 			throw new IOException(e);
@@ -165,15 +164,9 @@ public class Handler implements RequestStreamHandler {
 	}
 
 	private String getPayload(InputStream inputStream) throws IOException {
-		BufferedReader in = new BufferedReader(new InputStreamReader(inputStream));
-		StringBuffer sb = new StringBuffer();
-		String str;
-		while ((str = in.readLine()) != null) {
-			sb.append(str);
-		}
-		String event = sb.toString();
+		String event = new BufferedReader(new InputStreamReader(inputStream))
+				   .lines().collect(Collectors.joining("\n")).replace("\\", "\\\\");
 		JsonElement jsonElement = JsonParser.parseString(event);
-
 		String result = "";
 		if (jsonElement.isJsonArray()) {
 			boolean isFirst = true;
@@ -209,14 +202,24 @@ public class Handler implements RequestStreamHandler {
 		return result;
 	}
 
+	private void log(String msg) {
+		if (Handler.logger == null) {
+			System.out.println(msg);
+		} else {
+			Handler.logger.log(msg + "\n");
+		}
+
+	}
+
 	// This is used for testing locally:
 	public static void main(String[] args) throws Exception {
 		Handler me = new Handler();
 		String initialString = "[\r\n" + "  {\r\n" + "    \"key1\": \"value1\",\r\n" + "    \"key2\": \"value2\",\r\n"
 				+ "    \"key3\": \"value3\"\r\n" + "  },\r\n" + "  {\r\n" + "    \"key1\": \"value1\",\r\n"
-				+ "    \"key2\": \"value2\",\r\n" + "    \"key3\": \"va\\\\lue3\"\r\n" + "  },\r\n" + "  {\r\n"
+				+ "    \"key2\": \"value2\",\r\n" + "    \"key3\": \"va\\\nlue3\"\r\n" + "  },\r\n" + "  {\r\n"
 				+ "    \"key1\": \"value1\",\r\n" + "    \"key2\": \"value2\",\r\n" + "    \"key3\": \"value3\"\r\n"
 				+ "  }\r\n" + "]";
+		me.log(initialString);
 		InputStream inputStream = new ByteArrayInputStream(initialString.getBytes());
 		me.handleRequest(inputStream, null, null);
 	}
