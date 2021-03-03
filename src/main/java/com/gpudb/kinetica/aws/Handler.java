@@ -191,7 +191,7 @@ public class Handler implements RequestStreamHandler {
 		TreeMap<?, ?> map = gson.fromJson(jsonObject, TreeMap.class);
 
 		for (Entry<?, ?> entry : map.entrySet()) {
-			String value = entry.getValue().toString();
+			String value = entry.getValue().toString().replace("\n","\\n");
 			if (isFirst) {
 				isFirst = false;
 				result = result + value;
